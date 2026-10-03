@@ -1,0 +1,15 @@
+downloads/
+
+# Local configuration and secrets
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+profiles.xml
+
+# Local logs and Tizen state
+*.log
+.tizen/
+tizen-studio-data/
