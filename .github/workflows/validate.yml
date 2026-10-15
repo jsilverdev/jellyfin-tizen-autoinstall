@@ -41,4 +41,16 @@ jobs:
           }
       - name: Run Windows integration tests
         shell: pwsh
-        run: .\tests\integration-windows.ps1
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'windows-integration-tests.log'
+          & pwsh -NoProfile -ExecutionPolicy Bypass -File .\tests\integration-windows.ps1 *> $log
+          $exitCode = $LASTEXITCODE
+          @(
+            '### Windows integration tests'
+            ''
+            '```text'
+            (Get-Content -LiteralPath $log -Raw)
+            '```'
+          ) | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
+          Get-Content -LiteralPath $log
+          exit $exitCode
