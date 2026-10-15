@@ -27,7 +27,7 @@ Disable automatic dependency installation with `-SkipTizenInstall` on Windows or
 - Samsung TV running Tizen on the same network.
 - Developer Mode enabled on the TV.
 
-The default Tizen path is under `%LOCALAPPDATA%` so the installer does not intentionally write to a protected system directory. The script does not force elevation; however, Tizen's own Windows tooling can still request administrator privileges depending on the component or host configuration.
+The default Tizen path remains under `%LOCALAPPDATA%`. The official Tizen installer is launched normally; if Windows or Tizen requires administrator privileges, the standard UAC prompt may appear and can be accepted. The script does not suppress or bypass that elevation flow.
 
 ### Linux
 

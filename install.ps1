@@ -142,11 +142,15 @@ function Install-TizenCli {
             New-Item -ItemType Directory -Path $parentDirectory -Force | Out-Null
         }
 
-        $installResult = Invoke-NativeCapture -FilePath $installerPath -ArgumentList @(
-            '--accept-license', '--no-java-check', $Destination
+        Write-Host 'Ejecutando el instalador oficial de Tizen SDK. Windows puede mostrar un aviso UAC si el instalador necesita privilegios de administrador.'
+        $installerArguments = @(
+            '--accept-license',
+            '--no-java-check',
+            ('"' + $Destination + '"')
         )
-        if ($installResult.ExitCode -ne 0) {
-            throw "El instalador de Tizen SDK termino con codigo $($installResult.ExitCode).`n$($installResult.Text)"
+        $installProcess = Start-Process -FilePath $installerPath -ArgumentList $installerArguments -Wait -PassThru
+        if ($installProcess.ExitCode -ne 0) {
+            throw "El instalador de Tizen SDK termino con codigo $($installProcess.ExitCode)."
         }
 
         if (-not (Test-TizenTools -Root $Destination)) {
