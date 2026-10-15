@@ -17,7 +17,7 @@ LATEST_RELEASE_API="https://api.github.com/repos/${REPOSITORY}/releases/latest"
 usage() {
     cat <<'USAGE'
 Usage:
-  ./Install-JellyfinTizen.sh --tv-ip <IPv4> [options]
+  ./install.sh --tv-ip <IPv4> [options]
 
 Options:
   --tv-ip <IPv4>                 Samsung TV IPv4 address (required).

@@ -2,8 +2,8 @@
 
 Cross-platform installers that deploy the latest stable Jellyfin build to a Samsung TV running Tizen.
 
-- **Windows:** `Install-JellyfinTizen.ps1`
-- **Linux:** `Install-JellyfinTizen.sh`
+- **Windows:** `install.ps1`
+- **Linux:** `install.sh`
 
 Both installers validate the TV and Tizen tools, auto-install the official Tizen SDK CLI when it is missing, connect through SDB, download the latest stable Jellyfin Tizen package, verify its size and SHA-256 digest, install it, and confirm that Jellyfin appears in the TV application list.
 
@@ -47,56 +47,56 @@ No GitHub token, Samsung credentials, or local certificate files are required. J
 
 ```powershell
 $tvIp = Read-Host 'TV IP address'
-powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-JellyfinTizen.ps1 -TvIp $tvIp
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -TvIp $tvIp
 ```
 
 PowerShell 7:
 
 ```powershell
-pwsh -NoProfile -File .\Install-JellyfinTizen.ps1 -TvIp 192.168.1.100
+pwsh -NoProfile -File .\install.ps1 -TvIp 192.168.1.100
 ```
 
 Validate without downloading or installing Jellyfin:
 
 ```powershell
-.\Install-JellyfinTizen.ps1 -TvIp 192.168.1.100 -ValidateOnly
+.\install.ps1 -TvIp 192.168.1.100 -ValidateOnly
 ```
 
 Use another Tizen installation:
 
 ```powershell
-.\Install-JellyfinTizen.ps1 -TvIp 192.168.1.100 -TizenStudioPath D:\tizen-studio
+.\install.ps1 -TvIp 192.168.1.100 -TizenStudioPath D:\tizen-studio
 ```
 
 Require Tizen to already exist:
 
 ```powershell
-.\Install-JellyfinTizen.ps1 -TvIp 192.168.1.100 -SkipTizenInstall
+.\install.ps1 -TvIp 192.168.1.100 -SkipTizenInstall
 ```
 
 ### Linux
 
 ```bash
-chmod +x ./Install-JellyfinTizen.sh
-./Install-JellyfinTizen.sh --tv-ip 192.168.1.100
+chmod +x ./install.sh
+./install.sh --tv-ip 192.168.1.100
 ```
 
 Validate without downloading or installing Jellyfin:
 
 ```bash
-./Install-JellyfinTizen.sh --tv-ip 192.168.1.100 --validate-only
+./install.sh --tv-ip 192.168.1.100 --validate-only
 ```
 
 Use another Tizen installation:
 
 ```bash
-./Install-JellyfinTizen.sh --tv-ip 192.168.1.100 --tizen-studio-path "$HOME/tizen-studio"
+./install.sh --tv-ip 192.168.1.100 --tizen-studio-path "$HOME/tizen-studio"
 ```
 
 Require Tizen to already exist:
 
 ```bash
-./Install-JellyfinTizen.sh --tv-ip 192.168.1.100 --skip-tizen-install
+./install.sh --tv-ip 192.168.1.100 --skip-tizen-install
 ```
 
 ### Alternative Jellyfin package
@@ -104,13 +104,13 @@ Require Tizen to already exist:
 Windows:
 
 ```powershell
-.\Install-JellyfinTizen.ps1 -TvIp 192.168.1.100 -AssetName Jellyfin-GrayFix.wgt
+.\install.ps1 -TvIp 192.168.1.100 -AssetName Jellyfin-GrayFix.wgt
 ```
 
 Linux:
 
 ```bash
-./Install-JellyfinTizen.sh --tv-ip 192.168.1.100 --asset-name Jellyfin-GrayFix.wgt
+./install.sh --tv-ip 192.168.1.100 --asset-name Jellyfin-GrayFix.wgt
 ```
 
 The default package is `Jellyfin.wgt`.
