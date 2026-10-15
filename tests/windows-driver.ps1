@@ -66,3 +66,5 @@ if ($SkipTizenInstall) {
 }
 
 & $Installer @forward
+$installerExitCode = $LASTEXITCODE
+exit $installerExitCode

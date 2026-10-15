@@ -104,7 +104,7 @@ if "%1"=="install" (
     echo Simulated install failure 1>&2
     exit /b 1
   )
-  echo Tizen application is successfully installed. Id(mock.jellyfin)
+  echo Tizen application is successfully installed. app_id[mock.jellyfin]
   exit /b 0
 )
 echo Unexpected tizen invocation: %* 1>&2
