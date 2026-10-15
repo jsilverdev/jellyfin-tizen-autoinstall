@@ -17,7 +17,10 @@ $tizenPath = Join-Path $fakeTizen 'tools\ide\bin\tizen.bat'
 New-Item -ItemType Directory -Path (Split-Path -Parent $sdbPath) -Force | Out-Null
 New-Item -ItemType Directory -Path (Split-Path -Parent $tizenPath) -Force | Out-Null
 
-$sdbSourcePath = Join-Path $tempDirectory 'sdb.cs'
+$sdbProjectDirectory = Join-Path $tempDirectory 'sdb-project'
+New-Item -ItemType Directory -Path $sdbProjectDirectory -Force | Out-Null
+$sdbSourcePath = Join-Path $sdbProjectDirectory 'Program.cs'
+$sdbProjectPath = Join-Path $sdbProjectDirectory 'sdb.csproj'
 @'
 using System;
 
@@ -65,18 +68,32 @@ public static class Program
         return 2;
     }
 }
-'@ | Set-Content -LiteralPath $sdbSourcePath -Encoding ASCII
+'@ | Set-Content -LiteralPath $sdbSourcePath -Encoding UTF8
 
-$csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-if (-not (Test-Path -LiteralPath $csc -PathType Leaf)) {
-    throw "C# compiler not found: $csc"
+@'
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <UseAppHost>true</UseAppHost>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>
+'@ | Set-Content -LiteralPath $sdbProjectPath -Encoding UTF8
+
+$nativePreferenceVariable = Get-Variable -Name PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyContinue
+if ($null -ne $nativePreferenceVariable) {
+    $global:PSNativeCommandUseErrorActionPreference = $false
 }
-& $csc /nologo /target:exe "/out:$sdbPath" $sdbSourcePath
+
+& dotnet publish $sdbProjectPath --configuration Release --output (Split-Path -Parent $sdbPath) --nologo
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $sdbPath -PathType Leaf)) {
     throw 'Failed to build the mock sdb.exe.'
 }
 
 @'
+
 @echo off
 if "%1"=="version" (
   echo Tizen CLI 1.0 mock
@@ -98,7 +115,8 @@ function Invoke-Installer {
     param(
         [Parameter(Mandatory = $true)]
         [string[]]$InstallerArguments,
-        [hashtable]$Environment = @{}
+        [hashtable]$Environment = @{},
+        [switch]$UseDownloadDriver
     )
 
     $savedEnvironment = @{}
@@ -108,7 +126,12 @@ function Invoke-Installer {
     }
 
     try {
-        $lines = @(& pwsh -NoProfile -ExecutionPolicy Bypass -File $driver -Installer $installer @InstallerArguments 2>&1)
+        if ($UseDownloadDriver) {
+            $lines = @(& pwsh -NoProfile -ExecutionPolicy Bypass -File $driver -Installer $installer @InstallerArguments 2>&1)
+        }
+        else {
+            $lines = @(& pwsh -NoProfile -ExecutionPolicy Bypass -File $installer @InstallerArguments 2>&1)
+        }
         $exitCode = $LASTEXITCODE
         $output = $lines -join [Environment]::NewLine
         Write-Host $output
@@ -126,32 +149,34 @@ function Invoke-Installer {
 
 function Assert-Success {
     param(
-        [string]$Name,
+        [string]$name,
         [string[]]$InstallerArguments,
-        [hashtable]$Environment = @{}
+        [hashtable]$Environment = @{},
+        [switch]$UseDownloadDriver
     )
-    Write-Host "`n--- $Name ---"
-    $result = Invoke-Installer -InstallerArguments $InstallerArguments -Environment $Environment
+    Write-Host "`n--- $name ---"
+    $result = Invoke-Installer -InstallerArguments $InstallerArguments -Environment $Environment -UseDownloadDriver:$UseDownloadDriver
     if ($result.ExitCode -ne 0) {
-        throw "$Name failed with exit code $($result.ExitCode)."
+        throw "$name failed with exit code $($result.ExitCode)."
     }
     return $result
 }
 
 function Assert-FailureContains {
     param(
-        [string]$Name,
+        [string]$name,
         [string]$Expected,
         [string[]]$InstallerArguments,
-        [hashtable]$Environment = @{}
+        [hashtable]$Environment = @{},
+        [switch]$UseDownloadDriver
     )
-    Write-Host "`n--- $Name ---"
-    $result = Invoke-Installer -InstallerArguments $InstallerArguments -Environment $Environment
+    Write-Host "`n--- $name ---"
+    $result = Invoke-Installer -InstallerArguments $InstallerArguments -Environment $Environment -UseDownloadDriver:$UseDownloadDriver
     if ($result.ExitCode -eq 0) {
-        throw "$Name unexpectedly succeeded."
+        throw "$name unexpectedly succeeded."
     }
     if (-not $result.Output.Contains($Expected)) {
-        throw "$Name did not contain expected text: $Expected"
+        throw "$name did not contain expected text: $Expected"
     }
     return $result
 }
@@ -205,7 +230,7 @@ try {
         '-TvIp', '127.0.0.1',
         '-TizenStudioPath', $fakeTizen,
         '-DownloadDirectory', $badDownloadDirectory
-    ) -Environment @{ MOCK_CORRUPT_DOWNLOAD = '1' }
+    ) -Environment @{ MOCK_CORRUPT_DOWNLOAD = '1' } -UseDownloadDriver
 
     $null = Assert-FailureContains -Name 'missing release asset' -Expected 'no contiene el asset' -InstallerArguments ($common + @(
         '-AssetName', 'DoesNotExist.wgt'
