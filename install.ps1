@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$TvIp,
-    [string]$TizenStudioPath = (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)) 'TizenStudio'),
+    [string]$TizenStudioPath = 'C:\tizen-studio',
     [ValidatePattern('\.wgt$')]
     [string]$AssetName = 'Jellyfin.wgt',
     [string]$DownloadDirectory,
