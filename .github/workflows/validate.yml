@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   linux:
@@ -42,19 +41,4 @@ jobs:
           }
       - name: Run Windows integration tests
         shell: pwsh
-        run: |
-          $log = Join-Path $env:RUNNER_TEMP 'windows-integration-tests.log'
-          & pwsh -NoProfile -ExecutionPolicy Bypass -File .\tests\integration-windows.ps1 *> $log
-          $exitCode = $LASTEXITCODE
-          Get-Content -LiteralPath $log
-          exit $exitCode
-      - name: Publish Windows failure diagnostics
-        if: failure() && github.event_name == 'pull_request'
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $log = Join-Path $env:RUNNER_TEMP 'windows-integration-tests.log'
-          $content = if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log -Raw } else { 'missing log' }
-          $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($content))
-          gh api --method POST "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --raw-field "body=integration-ci-diagnostic-base64:$encoded"
+        run: .\tests\integration-windows.ps1
