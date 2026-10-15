@@ -22,6 +22,7 @@ $repository = 'jeppevinkel/jellyfin-tizen-builds'
 $latestReleaseApi = "https://api.github.com/repos/$repository/releases/latest"
 $tizenSdkVersion = '10.0'
 $tizenInstallerUri = "https://download.tizen.org/sdk/Installer/tizen-sdk_$tizenSdkVersion/web-cli_Tizen_SDK_${tizenSdkVersion}_windows-64.exe"
+$tizenInstallerSize = 373556224
 
 function Write-Step {
     param([string]$Message)
@@ -111,11 +112,29 @@ function Install-TizenCli {
             Remove-Item -LiteralPath $installerPath -Force
         }
 
+        $installerUri = [Uri]$tizenInstallerUri
+        if ($installerUri.Scheme -ne 'https' -or $installerUri.Host -ne 'download.tizen.org') {
+            throw "Origen no permitido para el instalador de Tizen SDK: $tizenInstallerUri"
+        }
+
         Invoke-WebRequest -Uri $tizenInstallerUri -OutFile $installerPath -UseBasicParsing
 
+        $downloadedInstaller = Get-Item -LiteralPath $installerPath
+        if ($downloadedInstaller.Length -ne [long]$tizenInstallerSize) {
+            throw "Tamano inesperado del instalador de Tizen SDK: $($downloadedInstaller.Length) bytes. Esperado: $tizenInstallerSize."
+        }
+
         $signature = Get-AuthenticodeSignature -FilePath $installerPath
-        if ($signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid) {
-            throw "La firma Authenticode del instalador de Tizen SDK no es valida: $($signature.Status)."
+        switch ($signature.Status) {
+            ([System.Management.Automation.SignatureStatus]::Valid) {
+                Write-Host 'OK: firma Authenticode valida.'
+            }
+            ([System.Management.Automation.SignatureStatus]::NotSigned) {
+                Write-Warning 'El instalador Web CLI oficial de Tizen no tiene firma Authenticode. Se continuara tras validar origen HTTPS oficial y tamano exacto.'
+            }
+            default {
+                throw "La firma Authenticode del instalador de Tizen SDK tiene un estado invalido: $($signature.Status)."
+            }
         }
 
         $parentDirectory = Split-Path -Parent $Destination
@@ -123,11 +142,15 @@ function Install-TizenCli {
             New-Item -ItemType Directory -Path $parentDirectory -Force | Out-Null
         }
 
-        $installResult = Invoke-NativeCapture -FilePath $installerPath -ArgumentList @(
-            '--accept-license', '--no-java-check', $Destination
+        Write-Host 'Ejecutando el instalador oficial de Tizen SDK. Windows puede mostrar un aviso UAC si el instalador necesita privilegios de administrador.'
+        $installerArguments = @(
+            '--accept-license',
+            '--no-java-check',
+            ('"' + $Destination + '"')
         )
-        if ($installResult.ExitCode -ne 0) {
-            throw "El instalador de Tizen SDK termino con codigo $($installResult.ExitCode).`n$($installResult.Text)"
+        $installProcess = Start-Process -FilePath $installerPath -ArgumentList $installerArguments -Wait -PassThru
+        if ($installProcess.ExitCode -ne 0) {
+            throw "El instalador de Tizen SDK termino con codigo $($installProcess.ExitCode)."
         }
 
         if (-not (Test-TizenTools -Root $Destination)) {
