@@ -249,6 +249,7 @@ try {
     }
 
     Write-Host "`nAll Windows integration tests passed."
+    exit 0
 }
 finally {
     Remove-Item -LiteralPath $tempDirectory -Recurse -Force -ErrorAction SilentlyContinue
