@@ -14,7 +14,7 @@ Auto-install is enabled by default when `sdb` and `tizen` are missing.
 - Windows default: `%LOCALAPPDATA%\TizenStudio`
 - Linux default: `~/.local/share/tizen-studio`
 
-These locations are user-writable and do not require changing the system-wide `PATH`. The Windows flow validates the downloaded installer's Authenticode signature before execution. Linux uses the pinned official Tizen SDK 10.0 Web CLI installer from `download.tizen.org` and validates its expected size.
+These locations are user-writable and do not require changing the system-wide `PATH`. Both flows use the pinned official Tizen SDK 10.0 Web CLI installer from `download.tizen.org` and validate its expected size. On Windows, a valid Authenticode signature is accepted when present; the official Web CLI installer is also allowed when Windows reports `NotSigned`, after the HTTPS origin and exact byte size have been validated.
 
 Disable automatic dependency installation with `-SkipTizenInstall` on Windows or `--skip-tizen-install` on Linux.
 
@@ -27,7 +27,7 @@ Disable automatic dependency installation with `-SkipTizenInstall` on Windows or
 - Samsung TV running Tizen on the same network.
 - Developer Mode enabled on the TV.
 
-Administrator privileges are not required for the default Tizen path under `%LOCALAPPDATA%`.
+The default Tizen path is under `%LOCALAPPDATA%` so the installer does not intentionally write to a protected system directory. The script does not force elevation; however, Tizen's own Windows tooling can still request administrator privileges depending on the component or host configuration.
 
 ### Linux
 
