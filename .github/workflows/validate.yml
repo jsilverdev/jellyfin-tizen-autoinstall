@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   linux:
@@ -69,4 +70,4 @@ jobs:
             $content = 'Windows integration test log was not created.'
           }
           $body = "<!-- integration-ci-diagnostic -->`n### Windows integration diagnostics`n```text`n$content`n```"
-          gh pr comment ${{ github.event.pull_request.number }} --body $body --edit-last --create-if-none
+          gh api --method POST repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments -f body="$body"
