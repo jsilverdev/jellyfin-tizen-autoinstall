@@ -15,9 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate Bash syntax
-        run: bash -n ./Install-JellyfinTizen.sh
+        run: bash -n ./install.sh
       - name: Validate Linux help
-        run: bash ./Install-JellyfinTizen.sh --help
+        run: bash ./install.sh --help
 
   powershell:
     runs-on: windows-latest
@@ -29,7 +29,7 @@ jobs:
           $tokens = $null
           $errors = $null
           [System.Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path '.\Install-JellyfinTizen.ps1'),
+            (Resolve-Path '.\install.ps1'),
             [ref]$tokens,
             [ref]$errors
           ) | Out-Null
