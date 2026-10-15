@@ -12,15 +12,17 @@ permissions:
 jobs:
   linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Validate Bash syntax
         run: bash -n ./install.sh
-      - name: Validate Linux help
-        run: bash ./install.sh --help
+      - name: Run Linux integration tests
+        run: bash ./tests/integration-linux.sh
 
-  powershell:
+  windows:
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Validate PowerShell syntax
@@ -37,3 +39,6 @@ jobs:
             $errors | Format-List | Out-String | Write-Error
             exit 1
           }
+      - name: Run Windows integration tests
+        shell: pwsh
+        run: .\tests\integration-windows.ps1
