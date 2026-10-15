@@ -17,7 +17,7 @@ jobs:
       - name: Validate Bash syntax
         run: bash -n ./Install-JellyfinTizen.sh
       - name: Validate Linux help
-        run: ./Install-JellyfinTizen.sh --help
+        run: bash ./Install-JellyfinTizen.sh --help
 
   powershell:
     runs-on: windows-latest
