@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   linux:
@@ -54,3 +55,18 @@ jobs:
           ) | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
           Get-Content -LiteralPath $log
           exit $exitCode
+      - name: Publish Windows failure diagnostics
+        if: failure() && github.event_name == 'pull_request'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'windows-integration-tests.log'
+          if (Test-Path -LiteralPath $log) {
+            $content = Get-Content -LiteralPath $log -Raw
+          }
+          else {
+            $content = 'Windows integration test log was not created.'
+          }
+          $body = "<!-- integration-ci-diagnostic -->`n### Windows integration diagnostics`n```text`n$content`n```"
+          gh pr comment ${{ github.event.pull_request.number }} --body $body --edit-last --create-if-none
